@@ -1,3 +1,78 @@
+# Ender 3 + Elegoo Neptune 4 Extruder — Custom Marlin Firmware
+
+Custom Marlin `bugfix-2.1.x` firmware for a **Creality Ender 3** (standard) retrofitted with the **Elegoo Neptune 4 direct drive extruder** assembly.
+
+## Hardware
+
+| Component | Details |
+|---|---|
+| Printer | Creality Ender 3 (standard) |
+| Board | Creality v4.2.7 (STM32F103RET6) |
+| Display | OEM 12864 LCD (CR10_STOCKDISPLAY) |
+| Extruder | Elegoo Neptune 4 direct drive (52:10 gear ratio) |
+| Hotend thermistor | NTC 100K MGB18-104F39050L32 (beta 4100) |
+| Bed | Stock Ender 3 aluminum (235mm, usable 222×222mm) |
+| Probe | BAOLSEN N3F-H4NB-2 inductive (not in use — incompatible with aluminum bed) |
+| Z homing | Mechanical endstop switch |
+| Hotend fan | Wired directly to 24V (always on) |
+| Part cooling fan | FAN0 (PA0), slicer controlled |
+
+## Firmware Configuration
+
+- **Thermistor:** Custom type 1000 (R25=100K, beta=4100, 4.7K pull-up)
+- **E-steps:** 576 steps/mm (52:10 gear ratio, 28.888mm rotation distance)
+- **E direction:** Inverted (`INVERT_E0_DIR true`)
+- **Bed size:** 222 × 222 × 230 mm
+- **Home offsets (set via LCD, saved in EEPROM):** X=-16, Y=-18, Z=-0.9
+- **PlatformIO env:** `STM32F103RE_creality`
+
+## Enabled Features
+
+- S-Curve Acceleration
+- Linear Advance (tune K with `M900 K0.04` as starting point for direct drive)
+- Power Loss Recovery
+- Nozzle Park
+- Advanced Pause / Filament Change (M600)
+- Babystepping (double-click status screen for Z adjust)
+
+## Flashing
+
+1. Copy `firmware-*.bin` to a FAT32 micro SD card (≤8GB)
+2. Ensure the filename is different from the last flash
+3. Insert into board, power on — flashes automatically
+4. After flash: LCD → Configuration → Restore Defaults, then Store Settings
+5. Set home offsets: Configuration → Advanced → Set Home Offsets → X=-16, Y=-18, Z=-0.9, then Store Settings
+
+## Post-Flash Calibration
+
+1. **PID autotune:** `M303 E0 S200 C8` then `M500`
+2. **E-steps calibration:** Mark 120mm, extrude 100mm at 200°C, measure remainder, calculate
+3. **Linear Advance K:** Print K-factor test, adjust with `M900 K<value>`
+4. **Bed leveling:** Home all → paper trick at 4 corners + center
+
+## Wiring Notes
+
+- Neptune 4 extruder stepper → E0 motor connector (4-pin JST-XH)
+- Hotend heater → HEATER1 connector (PA1)
+- Hotend thermistor → TH1 connector (PC5)
+- Part cooling fan → FAN0 connector (PA0)
+- Hotend heatsink fan → directly to 24V PSU (always on)
+- Z endstop switch → Z-stop connector (PA7)
+- Inductive probe (unused) → BLTouch header "OUT" pin (PB1), powered from 24V
+
+## Building from Source
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install platformio
+pio run
+```
+
+Output: `.pio/build/STM32F103RE_creality/firmware-*.bin`
+
+---
+
 <p align="center"><img src="buildroot/share/pixmaps/logo/marlin-outrun-nf-500.png" height="250" alt="MarlinFirmware's logo" /></p>
 
 <h1 align="center">Marlin 3D Printer Firmware</h1>
